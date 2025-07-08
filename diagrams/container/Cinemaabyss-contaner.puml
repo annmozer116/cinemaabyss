@@ -1,0 +1,101 @@
+@startuml Cinemaabyss-container-Diagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+' uncomment the following line and comment the first to use locally
+' !include C4_Container.puml
+
+' LAYOUT_TOP_DOWN()
+' LAYOUT_AS_SKETCH()
+LAYOUT_WITH_LEGEND()
+
+title Container diagram for cinemaabyss system TO-BE 
+
+AddElementTag("queue", $shape=EightSidedShape(), $legendText="message broker/queue")
+
+Person(user, "User", "Пользователь приложения")
+
+System_Ext(rec_system, "Recommend System", "Система составляет подборки контента")
+System_Ext(payment_system, "Payment System", "Платежная система")
+System_Ext(movie_source, "Movie source System", "Система источник контента")
+System_Ext(loyalty_system, "Loyalty system", "Система лояльности")
+
+System_Boundary(c1, "Internet Banking") {
+    Container(api_gw, "API gateway", "Java, Spring MVC", "Единая точка вызова сервисов")
+    Container(web_app, "Web Application", "ReactJS", "Веб-интерфейс онлайн-кинотеатра")
+    Container(mobile_app, "Mobile Application", "Flatter", "Мобильное приложение онлайн-кинотеатра")
+    Container(tv_app, "Smart TV Application", "?", "Приложение для онлайн-кинотеатра на SmartTV")
+
+    Container(user_service, "User-service", "Golang", "Сервис управляет профилем пользователя, производит регистрацию, аутентификацию, авторизацию ")
+    ContainerDb(user_db, "User database", "SQL Database", "Профиль пользвоателя, сессии, логи авторизации")
+
+    Container(movies_service, "Movies-service", "Golang", "Сервис управляет метаинформацией о фильмах, жанрами, рейтингами")
+    ContainerDb(movies_db, "Movies database", "SQL Database", "Метаинформация о фильмах, каталог, жанры, рейтинги")
+
+    Container(streaming_service, "Streaming-service", "Golang", "Сервис раздает и кэширует контент, управляет качеством, фиксирует просмотр")
+    ContainerDb(streaming_db, "Streaming-database", "Key-value Database", "Фиксация просмотра")
+
+    Container(subscription_service, "Subscription-service", "Golang", "Сервис управления подписками")
+    ContainerDb(subscription_db, "Subscription-database", "SQL Database", "Каталог подписки, активные подписки")
+
+    Container(payment_service, "Payment-service", "Golang", "Сервис управления платежами и взаимодействия с платежными системами")
+    ContainerDb(payment_db, "Payment-database", "SQL Database", "Платежи")
+
+    Container(rec_service, "Recommend-service", "Golang", "Сервис выдачи подборок")
+    ContainerDb(rec_db, "Recommend-database", "NO-SQL Database", "Рекомендации, подборки")
+
+    Container(user_activity_service, "User-activity-service", "Golang", "Сервис взаимодействия с контентом: обрабатывает оценки, избранное, расчитывает рейтинг, обрабатывает просмотры")
+    ContainerDb(user_activity_db, "User-activity-database", "SQL Database", "Избранное, оценки")
+    
+    Container(analytics_service, "Analytics-service", "Golang", "Сервис аналитики: расчет рейтинга, частоты просмотра, и т.д.")
+    ContainerDb(analytics_db, "Analytics-database", "Column oriented DB", "Данные для аналитики")
+
+    Container(mq, "Message queue", "Kafka/Redpanda", "Брокер сообщений", $tags= "queue")
+
+}
+Rel(user, web_app, "Uses", "HTTPS")
+Rel(user, mobile_app, "Uses", "HTTPS")
+Rel(user, tv_app, "Uses", "HTTPS")
+
+Rel(web_app, api_gw, "Uses", "HTTPSWebSockets, pub/sub")
+Rel(mobile_app, api_gw, "Uses", "HTTPS/WebSockets, pub/sub")
+Rel(tv_app, api_gw, "Uses", "HTTPS/WebSockets, pub/sub")
+
+Rel(api_gw, user_service, "Uses", "HTTPS")
+Rel(api_gw, movies_service, "Uses", "HTTPS")
+Rel(api_gw, streaming_service, "Uses", "WebSockets, pub/sub")
+Rel(api_gw, subscription_service, "Uses", "HTTPS")
+Rel(api_gw, payment_service, "Uses", "HTTPS")
+Rel(api_gw, rec_service, "Uses", "HTTPS")
+Rel(api_gw, user_activity_service, "Uses", "HTTPS")
+Rel(api_gw, analytics_service, "Uses", "HTTPS")
+
+Rel(user_service, user_db, "read/write data", "JDBC")
+Rel(movies_service, movies_db, "read/write data", "JDBC")
+Rel(streaming_service, streaming_db, "read/write data", "JDBC")
+Rel(subscription_service, subscription_db, "read/write data", "JDBC")
+Rel_Neighbor(payment_service, payment_db, "read/write data", "JDBC")
+Rel(rec_service, rec_db, "read/write data", "JDBC")
+Rel(user_activity_service, user_activity_db, "read/write data", "JDBC")
+Rel(analytics_service, analytics_db, "read/write data", "JDBC")
+
+
+Rel(subscription_service, payment_service, "uses", "HTTPS")
+
+Rel(subscription_service, loyalty_system, "uses", "HTTPS,Async API")
+Rel(payment_service, payment_system, "uses", "HTTPS")
+Rel_L(streaming_service, movie_source, "uses", "Acync")
+Rel(rec_service, rec_system, "uses", "Acync via RabbitMQ")
+
+' Rel(user_service, subscription_service, "uses", "HTTPS")
+
+Rel(subscription_service, mq, "write subscription events", "TCP")
+Rel(user_service, mq, "read write subscription events/ write user events", "TCP")
+Rel(payment_service, mq, "read events/ write result", "TCP")
+Rel(rec_service, mq, "read scores, watches/ write result", "TCP")
+Rel(streaming_service, mq, "write watches checkpoints", "TCP")
+Rel(user_activity_service, mq, "write activities", "TCP")
+Rel(movies_service, mq, "read ratings", "TCP")
+Rel(analytics_service, mq, "read data/write ratings", "TCP")
+
+Rel(analytics_db, mq, "read data", "JDBC")
+
+@enduml
