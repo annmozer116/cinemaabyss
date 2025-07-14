@@ -1,0 +1,9 @@
+routes:
+  - path_prefix: "/api/movies"
+    target: "movies"
+  - path_prefix: "/api/users"
+    target: "monolith"
+  - path_prefix: "/api/payments"
+    target: "monolith"
+  - path_prefix: "/api/subscriptions"
+    target: "monolith"
