@@ -237,6 +237,19 @@ CinemaAbyss API Tests
 Необходимые тесты для проверки этого API вызываются при запуске npm run test:local из папки tests/postman 
 Приложите скриншот тестов и скриншот состояния топиков Kafka http://localhost:8090 
 
+Тесты:
+
+- [Tests-part-1](diagrams/files/task-2-2-tests-1.png)
+
+- [Tests-part-2](diagrams/files/task-2-2-tests-2.png)
+
+Kafka:
+
+- [Kafka Topics for movies events](diagrams/files/task-2-2-kafka-movies.png)
+
+- [Kafka Topics for payment events](diagrams/files/task-2-2-kafka-pay.png)
+
+- [Kafka Topics for user events](diagrams/files/task-2-2-kafka-user.png)
 
 ## Задание 3
 
