@@ -9,13 +9,13 @@ on:
       - ".github/workflows/docker-build-push.yml"
   release:
     types: [published]
-
 env:
   REGISTRY: ghcr.io
   MONOLITH_IMAGE_NAME: ${{ github.repository }}/monolith
   MOVIES_SERVICE_IMAGE_NAME: ${{ github.repository }}/movies-service
   EVENTS_SERVICE_IMAGE_NAME: ${{ github.repository }}/events-service
   PROXY_SERVICE_IMAGE_NAME: ${{ github.repository }}/proxy-service
+  PLATFORMS: linux/amd64,linux/arm64
 
 jobs:
   build-and-push:
@@ -27,6 +27,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: arm64 # Включаем поддержку ARM64
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -59,6 +64,7 @@ jobs:
           labels: ${{ steps.meta-monolith.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          platforms: ${{ env.PLATFORMS }}
 
       - name: Extract metadata (tags, labels) for Movies Service
         id: meta-movies
@@ -81,6 +87,7 @@ jobs:
           labels: ${{ steps.meta-movies.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          platforms: ${{ env.PLATFORMS }}
 
       - name: Extract metadata (tags, labels) for Proxy Service
         id: meta-proxy
@@ -103,6 +110,7 @@ jobs:
           labels: ${{ steps.meta-proxy.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          platforms: ${{ env.PLATFORMS }}
 
       - name: Extract metadata (tags, labels) for Events Service
         id: meta-events
@@ -125,3 +133,4 @@ jobs:
           labels: ${{ steps.meta-events.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          platforms: ${{ env.PLATFORMS }}
