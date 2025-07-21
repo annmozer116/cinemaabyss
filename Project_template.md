@@ -470,6 +470,10 @@ cat .docker/config.json | base64
 #### Шаг 3
 Добавьте сюда скриншота вывода при вызове https://cinemaabyss.example.com/api/movies и  скриншот вывода event-service после вызова тестов.
 
+- [Скриншота вывода при вызове https://cinemaabyss.example.com/api/movies](diagrams/files/task-3-3-apimovies.png)
+
+- [Скриншот вывода event-service после вызова тестов](diagrams/files/task-3-3-events-logs.png)
+
 
 ## Задание 4
 Для простоты дальнейшего обновления и развертывания вам как архитектуру необходимо так же реализовать helm-чарты для прокси-сервиса и проверить работу 

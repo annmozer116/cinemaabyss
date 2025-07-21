@@ -12,7 +12,6 @@ spec:
       http:
         paths:
           #дополните конфигурацию для /
-          ...
           - path: /api/events
             pathType: Prefix
             backend:
@@ -20,3 +19,11 @@ spec:
                 name: events-service
                 port:
                   number: 8082
+
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: proxy-service
+                port:
+                  number: 8000
