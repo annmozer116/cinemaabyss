@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -18,13 +19,20 @@ type Server struct {
 
 func New(cfg *config.Config) *Server {
 	// Создаем прокси
+	log.Printf("Creating new server")
+	log.Printf("Loading env")
+
 	port := config.GetEnv("PORT", "8000")
 	monolithURL := config.GetEnv("MONOLITH_URL", "http://localhost:8080")
 	moviesURL := config.GetEnv("MOVIES_SERVICE_URL", "http://localhost:8081")
 
+	log.Printf("Envs are: port=%s, monolithURL=%s, moviesURL=%s", port, monolithURL, moviesURL)
+
 	rp := proxy.NewReverseProxy(monolithURL, moviesURL)
 	// Инициализируем роутер
 	router := proxy.NewRouter(cfg, rp)
+
+	log.Printf("Router initialized")
 
 	return &Server{
 		httpServer: &http.Server{

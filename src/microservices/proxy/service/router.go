@@ -37,10 +37,10 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 					randomNum := rand.IntN(100)
 
 					if randomNum < r.config.MigrationPercent {
-						log.Printf("A/B routing, N is %d, route to %s", randomNum, route.Target)
+						log.Printf("A/B routing, N is %d, migrationPercent is %d, route to %s", randomNum, r.config.MigrationPercent, route.Target)
 						r.proxy.Serve(w, req, route.Target)
 					} else {
-						log.Printf("A/B routing, N is %d, route to %s", randomNum, "monolith")
+						log.Printf("A/B routing, N is %d, migrationPercent is %d, route to %s", randomNum, r.config.MigrationPercent, route.Target)
 						r.proxy.Serve(w, req, "monolith")
 					}
 					return
