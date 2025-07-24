@@ -5,14 +5,40 @@
 1. Спроектируйте to be архитектуру КиноБездны, разделив всю систему на отдельные домены и организовав интеграционное взаимодействие и единую точку вызова сервисов.
 Результат представьте в виде контейнерной диаграммы в нотации С4.
 Добавьте ссылку на файл в этот шаблон
-[ссылка на файл](ссылка)
 
+**Решение:**
+
+[Container-diagram](diagrams/container/Cinemaabyss-container-Diagram.png)
+
+-Домен: предоставление видео контента
+  - поддомен: управление каталогом
+    - контекст: управление каталогом
+      - сущности: жанры, метаданные, источники, каталог
+    - контекст: управление метаинформацией видео
+    - контекст: рейтинги видео
+  - поддомен: трансляция контента
+    - контекст: стриминг контента
+    - контекст: фиксация состояния просмотра
+- Домен: персонализация стриминга
+  - поддомен: персонализация стриминга
+    - контекст: рекомендации фильмов
+  - поддомен: пользовательское взаимодействие с видео
+    - контекст: оценка видео
+    - контекст: добавление видео
+    - контекст: управление избранным
+    - контекст: отслеживание просмотра видео
+- Домен: управление подписками
+  - поддомен: управление подписками
+  - поддомен: управление платежами
+  - подомен: управление пользователями
+    - контекст: регистрация
+    - контекст: авторизация
+    - контекст: профиль
 
 ## Задание 2
 
 ### 1. Proxy
 Команда КиноБездны уже выделила сервис метаданных о фильмах movies и вам необходимо реализовать бесшовный переход с применением паттерна Strangler Fig в части реализации прокси-сервиса (API Gateway), с помощью которого можно будет постепенно переключать траффик, используя фиче-флаг.
-
 
 Реализуйте сервис на любом языке программирования в ./src/microservices/proxy.
 Конфигурация для запуска сервиса через docker-compose уже добавлена
@@ -47,6 +73,158 @@
    ```
 - Протестируйте постепенный переход, изменив переменную окружения MOVIES_MIGRATION_PERCENT в файле docker-compose.yml.
 
+**Решение:**
+протестировано с помощью запуска тестов локально
+```
+node run-tests.js --environment local
+
+Running tests against local environment...
+(node:79354) [DEP0176] DeprecationWarning: fs.F_OK is deprecated, use fs.constants.F_OK instead
+(Use `node --trace-deprecation ...` to show where the warning was created)
+newman: could not find "htmlextra" reporter
+  ensure that the reporter is installed in the same directory as newman
+  please install reporter using npm
+
+newman
+
+CinemaAbyss API Tests
+
+❏ Monolith Service
+↳ Health Check
+  GET http://127.0.0.1:8080/health [200 OK, 124B, 20ms]
+  ✓  Status code is 200
+
+↳ Get All Users
+  GET http://127.0.0.1:8080/api/users [200 OK, 279B, 8ms]
+  ✓  Status code is 200
+  ✓  Response is an array
+
+↳ Create User
+  POST http://127.0.0.1:8080/api/users [201 Created, 181B, 23ms]
+  ✓  Status code is 201
+  ✓  Response has id
+
+↳ Get User by ID
+  GET http://127.0.0.1:8080/api/users?id=4 [200 OK, 176B, 4ms]
+  ✓  Status code is 200
+  ✓  User ID matches
+
+↳ Get All Movies
+  GET http://127.0.0.1:8080/api/movies [200 OK, 1.38kB, 6ms]
+  ✓  Status code is 200
+  ✓  Response is an array
+
+↳ Create Movie
+  POST http://127.0.0.1:8080/api/movies [201 Created, 245B, 13ms]
+  ✓  Status code is 201
+  ✓  Response has id
+
+↳ Get Movie by ID
+  GET http://127.0.0.1:8080/api/movies?id=6 [200 OK, 240B, 3ms]
+  ✓  Status code is 200
+  ✓  Movie ID matches
+
+↳ Create Payment
+  POST http://127.0.0.1:8080/api/payments [201 Created, 193B, 9ms]
+  ✓  Status code is 201
+  ✓  Response has id
+
+↳ Get Payment by ID
+  GET http://127.0.0.1:8080/api/payments?id=4 [200 OK, 185B, 5ms]
+  ✓  Status code is 200
+  ✓  Payment ID matches
+
+↳ Create Subscription
+  POST http://127.0.0.1:8080/api/subscriptions [201 Created, 235B, 15ms]
+  ✓  Status code is 201
+  ✓  Response has id
+
+↳ Get Subscription by ID
+  GET http://127.0.0.1:8080/api/subscriptions?id=4 [200 OK, 230B, 7ms]
+  ✓  Status code is 200
+  ✓  Subscription ID matches
+
+❏ Movies Microservice
+↳ Health Check
+  GET http://127.0.0.1:8081/api/movies/health [200 OK, 124B, 9ms]
+  ✓  Status code is 200
+  ✓  Status is true
+
+↳ Get All Movies
+  GET http://127.0.0.1:8081/api/movies [200 OK, 1.51kB, 11ms]
+  ✓  Status code is 200
+  ✓  Response is an array
+
+↳ Create Movie
+  POST http://127.0.0.1:8081/api/movies [201 Created, 282B, 11ms]
+  ✓  Status code is 201
+  ✓  Response has id
+
+↳ Get Movie by ID
+  GET http://127.0.0.1:8081/api/movies?id=7 [200 OK, 277B, 6ms]
+  ✓  Status code is 200
+  ✓  Movie ID matches
+
+❏ Events Microservice
+↳ Health Check
+  GET http://127.0.0.1:8082/api/events/health [errored]
+     connect ECONNREFUSED 127.0.0.1:8082
+  2. Status code is 200
+  3. Status is true
+
+↳ Create Movie Event
+  POST http://127.0.0.1:8082/api/events/movie [errored]
+     connect ECONNREFUSED 127.0.0.1:8082
+  5. Status code is 201
+  6. Response has status success
+
+↳ Create User Event
+  POST http://127.0.0.1:8082/api/events/user [errored]
+     connect ECONNREFUSED 127.0.0.1:8082
+  8. Status code is 201
+  9. Response has status success
+
+↳ Create Payment Event
+  POST http://127.0.0.1:8082/api/events/payment [errored]
+     connect ECONNREFUSED 127.0.0.1:8082
+ 11. Status code is 201
+ 12. Response has status success
+
+❏ Proxy Service
+↳ Health Check
+  GET http://127.0.0.1:8000/health [200 OK, 75B, 16ms]
+  ✓  Status code is 200
+
+↳ Get All Movies via Proxy
+  GET http://127.0.0.1:8000/api/movies [200 OK, 1.68kB, 20ms]
+  ✓  Status code is 200
+  ✓  Response is an array
+
+↳ Get All Users via Proxy
+  GET http://127.0.0.1:8000/api/users [200 OK, 347B, 10ms]
+  ✓  Status code is 200
+  ✓  Response is an array
+
+┌─────────────────────────┬──────────────────┬─────────────────┐
+│                         │         executed │          failed │
+├─────────────────────────┼──────────────────┼─────────────────┤
+│              iterations │                1 │               0 │
+├─────────────────────────┼──────────────────┼─────────────────┤
+│                requests │               22 │               4 │
+├─────────────────────────┼──────────────────┼─────────────────┤
+│            test-scripts │               22 │               0 │
+├─────────────────────────┼──────────────────┼─────────────────┤
+│      prerequest-scripts │                0 │               0 │
+├─────────────────────────┼──────────────────┼─────────────────┤
+│              assertions │               42 │               8 │
+├─────────────────────────┴──────────────────┴─────────────────┤
+│ total run duration: 2.8s                                     │
+├──────────────────────────────────────────────────────────────┤
+│ total data received: 5.8kB (approx)                          │
+├──────────────────────────────────────────────────────────────┤
+│ average response time: 10ms [min: 3ms, max: 23ms, s.d.: 5ms] │
+```
+
 ### 2. Kafka
  Вам как архитектуру нужно также проверить гипотезу насколько просто реализовать применение Kafka в данной архитектуре.
 
@@ -59,6 +237,19 @@
 Необходимые тесты для проверки этого API вызываются при запуске npm run test:local из папки tests/postman 
 Приложите скриншот тестов и скриншот состояния топиков Kafka http://localhost:8090 
 
+Тесты:
+
+- [Tests-part-1](diagrams/files/task-2-2-tests-1.png)
+
+- [Tests-part-2](diagrams/files/task-2-2-tests-2.png)
+
+Kafka:
+
+- [Kafka Topics for movies events](diagrams/files/task-2-2-kafka-movies.png)
+
+- [Kafka Topics for payment events](diagrams/files/task-2-2-kafka-pay.png)
+
+- [Kafka Topics for user events](diagrams/files/task-2-2-kafka-user.png)
 
 ## Задание 3
 
@@ -110,6 +301,11 @@ jobs:
 Как только сборка отработает и в github registry появятся ваши образы, можно переходить к блоку настройки Kubernetes
 Успешным результатом данного шага является "зеленая" сборка и "зеленые" тесты
 
+**Решение:**
+
+[Запущенные workflow](diagrams/files/task-3-1-green.png)
+
+[Результат тестов](diagrams/files/task-3-1-tests.png)
 
 ### Proxy в Kubernetes
 
@@ -274,6 +470,10 @@ cat .docker/config.json | base64
 #### Шаг 3
 Добавьте сюда скриншота вывода при вызове https://cinemaabyss.example.com/api/movies и  скриншот вывода event-service после вызова тестов.
 
+- [Скриншота вывода при вызове https://cinemaabyss.example.com/api/movies](diagrams/files/task-3-3-apimovies.png)
+
+- [Скриншот вывода event-service после вызова тестов](diagrams/files/task-3-3-events-logs.png)
+
 
 ## Задание 4
 Для простоты дальнейшего обновления и развертывания вам как архитектуру необходимо так же реализовать helm-чарты для прокси-сервиса и проверить работу 
@@ -349,6 +549,10 @@ minikube tunnel
 https://cinemaabyss.example.com/api/movies
 и приложите скриншот развертывания helm и вывода https://cinemaabyss.example.com/api/movies
 
+**Решение:**
+
+- [Скриншот развертывания+вызова+логов](diagrams/files/task-4.png)
+
 
 # Задание 5
 Компания планирует активно развиваться и для повышения надежности, безопасности, реализации сетевых паттернов типа Circuit Breaker и канареечного деплоя вам как архитектору необходимо развернуть istio и настроить circuit breaker для monolith и movies сервисов.
@@ -422,3 +626,7 @@ kubectl delete namespace istio-system
 kubectl delete all --all -n cinemaabyss
 kubectl delete namespace cinemaabyss
 ```
+
+**Решение:**
+
+[Скриншот работы circuit breaker'а](diagrams/files/task-5-circuit-breaker.png)
