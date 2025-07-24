@@ -9,6 +9,6 @@ const (
 )
 
 type Event struct {
-	Type EventType `json:"type"`
-	Data string    `json:"data"`
+	Type EventType   `json:"type"`
+	Data interface{} `json:"data"`
 }

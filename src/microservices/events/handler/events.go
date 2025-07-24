@@ -42,7 +42,7 @@ func (h *EventHandler) CreateUserEvent(w http.ResponseWriter, r *http.Request) {
 
 	event := model.Event{
 		Type: model.UserEvent,
-		Data: string(body),
+		Data: data,
 	}
 
 	if err := h.producer.SendEvent(h.cfg.KafkaUserTopic, event); err != nil {
@@ -70,7 +70,7 @@ func (h *EventHandler) CreatePaymentEvent(w http.ResponseWriter, r *http.Request
 
 	event := model.Event{
 		Type: model.PaymentEvent,
-		Data: string(body),
+		Data: data,
 	}
 
 	if err := h.producer.SendEvent(h.cfg.KafkaPaymentTopic, event); err != nil {
@@ -99,7 +99,7 @@ func (h *EventHandler) CreateMovieEvent(w http.ResponseWriter, r *http.Request) 
 
 	event := model.Event{
 		Type: model.MovieEvent,
-		Data: string(body),
+		Data: data,
 	}
 
 	if err := h.producer.SendEvent(h.cfg.KafkaMovieTopic, event); err != nil {
