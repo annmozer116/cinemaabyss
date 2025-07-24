@@ -33,18 +33,19 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		if strings.HasPrefix(req.URL.Path, route.PathPrefix) {
 			if route.Target != "monolith" {
 
-				if r.config.GradualMigration && r.config.MigrationPercent > 0 {
+				if r.config.GradualMigration && r.config.MigrationPercent < 100 {
 					randomNum := rand.IntN(100)
 
 					if randomNum < r.config.MigrationPercent {
-						log.Printf("A/B routing, N is %d, migrationPercent is %d, route to %s", randomNum, r.config.MigrationPercent, route.Target)
+						log.Printf("A/B routing, N is %d, migrationPercent is %d", randomNum, r.config.MigrationPercent)
 						r.proxy.Serve(w, req, route.Target)
 					} else {
-						log.Printf("A/B routing, N is %d, migrationPercent is %d, route to %s", randomNum, r.config.MigrationPercent, route.Target)
+						log.Printf("A/B routing, N is %d, migrationPercent is %d", randomNum, r.config.MigrationPercent)
 						r.proxy.Serve(w, req, "monolith")
 					}
 					return
 				} else {
+					log.Printf("A/B routing off, GradualMigration is %t, migrationPercent is %d", r.config.GradualMigration, r.config.MigrationPercent)
 					r.proxy.Serve(w, req, route.Target)
 				}
 			} else {

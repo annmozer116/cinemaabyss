@@ -45,6 +45,7 @@ func Load() *Config {
 		config.GradualMigration = false
 	}
 	config.MigrationPercent, _ = strconv.Atoi(migrationPerc)
+	log.Printf("Config loadid: %v", config)
 	return &config
 }
 
